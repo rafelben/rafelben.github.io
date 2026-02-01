@@ -632,6 +632,39 @@
             const [answers, setAnswers] = React.useState({});
             const [selectedResponseIndex, setSelectedResponseIndex] = React.useState(null);
             const [showResults, setShowResults] = React.useState(false);
+            const [savedProgress, setSavedProgress] = React.useState(null);
+
+            // ✅ CHARGER LES DONNÉES SAUVEGARDÉES AU DÉMARRAGE
+            React.useEffect(() => {
+                try {
+                    const savedAnswers = localStorage.getItem('neo_pi_answers');
+                    const savedQuestion = localStorage.getItem('neo_pi_current_question');
+                    const savedStarted = localStorage.getItem('neo_pi_started');
+                    
+                    if (savedAnswers && savedStarted === 'true') {
+                        const parsedAnswers = JSON.parse(savedAnswers);
+                        setAnswers(parsedAnswers);
+                        if (savedQuestion) {
+                            setCurrentQuestion(parseInt(savedQuestion));
+                        }
+                        setStarted(true);
+                        setSavedProgress(Object.keys(parsedAnswers).length);
+                    }
+                } catch (e) {
+                    console.log('Pas de données sauvegardées');
+                }
+            }, []);
+
+            // ✅ SAUVEGARDER LES RÉPONSES À CHAQUE CHANGEMENT
+            React.useEffect(() => {
+                try {
+                    localStorage.setItem('neo_pi_answers', JSON.stringify(answers));
+                    localStorage.setItem('neo_pi_current_question', currentQuestion.toString());
+                    localStorage.setItem('neo_pi_started', 'true');
+                } catch (e) {
+                    console.log('Erreur sauvegarde');
+                }
+            }, [answers, currentQuestion]);
             const [showExportModal, setShowExportModal] = React.useState(false);
 
             // Charger la réponse précédente si elle existe (une seule fois au changement de question)
@@ -780,7 +813,18 @@
                         </div>
                         <div className="home-screen">
                             <h2>Bienvenue au test NEO-PI-3</h2>
-                            <p>Répondez honnêtement à 240 affirmations pour obtenir une évaluation détaillée de votre personnalité selon le modèle OCEAN (Big Five).</p>
+                            {savedProgress && savedProgress > 0 ? (
+                                <div style={{backgroundColor: '#d4edda', border: '2px solid #28a745', borderRadius: '10px', padding: '20px', marginBottom: '30px'}}>
+                                    <p style={{color: '#155724', fontSize: '1.1em', fontWeight: 'bold'}}>
+                                        📊 Vous avez une progression sauvegardée !
+                                    </p>
+                                    <p style={{color: '#155724', marginTop: '10px'}}>
+                                        ✅ {savedProgress} / 240 questions répondues
+                                    </p>
+                                </div>
+                            ) : (
+                                <p>Répondez honnêtement à 240 affirmations pour obtenir une évaluation détaillée de votre personnalité selon le modèle OCEAN (Big Five).</p>
+                            )}
                             <div className="info-grid">
                                 <div className="info-card">
                                     <div className="info-icon">📋</div>
@@ -803,9 +847,29 @@
                                     <div className="info-text">Durée moyenne</div>
                                 </div>
                             </div>
-                            <button className="btn btn-primary btn-start" onClick={() => setStarted(true)}>
-                                Commencer le Test
-                            </button>
+                            {savedProgress && savedProgress > 0 ? (
+                                <div style={{display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap'}}>
+                                    <button className="btn btn-primary btn-start" onClick={() => setStarted(true)}>
+                                        ▶️ Continuer ({savedProgress}/240)
+                                    </button>
+                                    <button className="btn btn-secondary btn-start" onClick={() => {
+                                        if (confirm('Êtes-vous sûr ? Cela effacera votre progression.')) {
+                                            localStorage.removeItem('neo_pi_answers');
+                                            localStorage.removeItem('neo_pi_current_question');
+                                            localStorage.removeItem('neo_pi_started');
+                                            setAnswers({});
+                                            setCurrentQuestion(0);
+                                            setSavedProgress(null);
+                                        }
+                                    }}>
+                                        🔄 Recommencer
+                                    </button>
+                                </div>
+                            ) : (
+                                <button className="btn btn-primary btn-start" onClick={() => setStarted(true)}>
+                                    Commencer le Test
+                                </button>
+                            )}
                         </div>
                     </div>
                 );
@@ -955,6 +1019,12 @@
                                 Suivant →
                             </button>
                         )}
+                        <button className="btn btn-secondary" onClick={() => {
+                            setStarted(false);
+                            alert(`✅ Progression sauvegardée ! ${Object.keys(answers).length}/240 questions répondues.\n\nVous pouvez fermer et revenir plus tard.`);
+                        }}>
+                            ⏸️ Pause
+                        </button>
                     </div>
                 </div>
             );
