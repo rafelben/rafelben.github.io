@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEO-PI-3 - Test Complet de Personnalité</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        .progress-section {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .progress-bar {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .progress-text { text-align: center; color: #495057; font-weight: 500; }
+        .content {
+            padding: 40px 30px;
+            max-height: 65vh;
+            overflow-y: auto;
+        }
+        .question-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .question-number { color: #667eea; font-weight: bold; font-size: 0.9em; margin-bottom: 10px; }
+        .question-text { font-size: 1.05em; margin-bottom: 20px; color: #212529; font-weight: 500; line-height: 1.5; }
+        .response-options {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+        .response-btn {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.85em;
+        }
+        .response-btn:hover { border-color: #667eea; transform: translateY(-2px); }
+        .response-btn.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            border-color: transparent;
+        }
+        .response-btn.fd { color: #dc3545; }
+        .response-btn.d { color: #fd7e14; }
+        .response-btn.n { color: #ffc107; }
+        .response-btn.a { color: #28a745; }
+        .response-btn.fa { color: #667eea; }
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; transform: translateY(-2px); }
+        .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; transform: translateY(-2px); }
+        .home-screen {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .home-screen h2 { font-size: 2em; margin-bottom: 20px; color: #212529; }
+        .home-screen p {
+            font-size: 1.05em;
+            color: #495057;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .info-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        .info-icon { font-size: 2.5em; margin-bottom: 15px; }
+        .info-title { font-weight: 600; font-size: 1.1em; margin-bottom: 10px; color: #212529; }
+        .info-text { color: #6c757d; font-size: 0.95em; }
+        .btn-start { padding: 15px 50px; font-size: 1.1em; margin-top: 20px; }
+        .results-container { padding: 40px; max-height: 85vh; overflow-y: auto; }
+        .results-title { font-size: 2em; font-weight: bold; text-align: center; margin-bottom: 30px; color: #212529; }
+        .results-section { margin-bottom: 50px; }
+        .dimension-header {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+        .facette-row {
+            display: grid;
+            grid-template-columns: 150px 100px 200px 1fr 120px;
+            gap: 20px;
+            align-items: center;
+            padding: 18px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #e9ecef;
+        }
+        .facette-name { font-weight: 600; color: #212529; font-size: 0.95em; }
+        .score-brut { font-weight: bold; color: #667eea; text-align: center; font-size: 1.1em; }
+        .percentile-badge {
+            font-weight: 600;
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-align: center;
+            color: white;
+            font-size: 0.9em;
+        }
+        .percentile-20-34 { background: #721c24; }
+        .percentile-35-44 { background: #d97706; }
+        .percentile-45-55 { background: #6b7280; }
+        .percentile-56-65 { background: #059669; }
+        .percentile-66-80 { background: #0369a1; }
+        .percentile-bar {
+            background: #e9ecef;
+            height: 24px;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        .percentile-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .dimension-row {
+            display: grid;
+            grid-template-columns: 150px 100px 200px 1fr 120px;
+            gap: 20px;
+            align-items: center;
+            padding: 22px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 2px solid #667eea;
+        }
+        .dimension-name { font-weight: bold; font-size: 1.2em; color: #667eea; }
+        .export-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .export-modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .export-modal-title { font-size: 1.5em; font-weight: bold; margin-bottom: 20px; color: #212529; }
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .export-option {
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 600;
+            color: #667eea;
+        }
+        .export-option:hover { border-color: #667eea; background: #f8f9fa; }
+        .print-hidden { display: block; }
+        @media print {
+            body { background: white; }
+            .print-hidden { display: none; }
+            .controls { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const WEBHOOK_URL = 'https://webhook.site/cfd7bb7d-d587-49c3-b5c7-68048b819d42';
+
+        const QUESTIONS = [
+            "Je ne suis pas du genre à me faire du souci.",
+            "J'aime vraiment bien la plupart des gens que je rencontre.",
+            "J'ai une imagination très active.",
+            "J'ai tendance à être cynique et sceptique en ce qui concerne les intentions des autres.",
+            "Je suis réputé(e) pour ma prudence et mon bon sens.",
+            "Je me mets souvent en colère à cause de la manière dont les gens me traitent.",
+            "J'essaye d'éviter les foules.",
+            "Les préoccupations esthétiques et artistiques ne sont pas très importantes pour moi.",
+            "Je ne suis ni rusé(e) ni sournois(e).",
+            "Je préfère me garder des possibilités de choix, plutôt que tout planifier à l'avance.",
+            "Je crains souvent que de mauvaises choses ne m'arrivent.",
+            "Je suis quelqu'un de dynamique et enthousiaste.",
+            "J'aime réfléchir à des sujets abstraits et théoriques.",
+            "Je suis altruiste et je partage volontiers avec autrui.",
+            "Je suis une personne disciplinée et efficace.",
+            "Je suis assez colérique.",
+            "Je suis un(e) causeur(se) réservé(e) et tranquille.",
+            "Je suis sensible à la beauté de l'art et de la nature.",
+            "Je ne suis pas particulièrement intéressé(e) par l'exploration des sujets d'ordre esthétique.",
+            "Je m'efforce d'accomplir un travail consciencieux.",
+            "Je ne me sens pas particulièrement énergique.",
+            "Je deviens tendu(e) facilement.",
+            "Je trouve des conversations stimulantes avec d'autres personnes.",
+            "Je n'aime pas gaspiller mon temps à rêver et à fantasmer.",
+            "Je me préoccupe de ce que les autres pensent de moi.",
+            "J'ai du mal à me mettre au travail.",
+            "Je me sens mal à l'aise d'être le centre de l'attention.",
+            "J'aime avoir de l'ordre et de la structure dans ma vie.",
+            "J'aime faire plaisir aux autres.",
+            "Beaucoup de choses m'intéressent.",
+            "Je suis généralement confiante et sûr(e) de moi.",
+            "Parfois je me sens complètement inutile.",
+            "J'ai beaucoup d'amis et j'aime être en société.",
+            "Je déteste la routine.",
+            "Je ferais pratiquement n'importe quoi pour un ami.",
+            "Je suis souvent en retard pour mes rendez-vous.",
+            "Je suis quelqu'un d'anxieux qui s'inquiète facilement.",
+            "Je serais un bon acteur(trice).",
+            "Je préfère les travaux qui sont simples et directs.",
+            "J'aime être au cœur de l'action.",
+            "J'aime me détendre et profiter de la vie.",
+            "Je suis quelqu'un qui s'énerve rapidement et facilement.",
+            "Je suis quelqu'un qui aime compétitionner.",
+            "Je suis quelqu'un qui parle peu.",
+            "Je suis quelqu'un d'artistic sensible aux belles choses.",
+            "Je suis quelqu'un qui pense d'abord à soi-même.",
+            "Je suis quelqu'un qui ne se dépêche jamais.",
+            "Je suis quelqu'un qui fait preuve de retenue.",
+            "Je suis quelqu'un qui se met rapidement en colère.",
+            "Je suis quelqu'un qui aime passer du temps avec d'autres.",
+            "Je suis quelqu'un qui a peu d'intérêt pour les arts.",
+            "Je suis quelqu'un d'attentionné envers les autres.",
+            "Je suis quelqu'un qui finit ce qu'il a commencé.",
+            "Je suis quelqu'un qui se met en colère.",
+            "Je suis quelqu'un de réservé.",
+            "Je suis quelqu'un qui apprécie l'art et la beauté.",
+            "Je suis quelqu'un qui dit franchement ce qu'il pense.",
+            "Je suis quelqu'un qui oublie de mettre les choses à leur place.",
+            "Je suis quelqu'un d'anxieux et nerveux.",
+            "Je suis quelqu'un d'extraverti(e) et bavard(e).",
+            "Je suis quelqu'un qui a peu d'imagination.",
+            "Je suis quelqu'un qui aide les autres volontiers.",
+            "Je suis quelqu'un qui est très organisé(e).",
+            "Je suis quelqu'un qui fait l'expérience d'émotions dépressives.",
+            "Je suis quelqu'un qui a des sentiments généreux.",
+            "Je suis quelqu'un qui cherche la querelle.",
+            "Je suis quelqu'un qui est sociable.",
+            "Je suis quelqu'un qui a une riche vie fantasy.",
+            "Je suis quelqu'un qui n'est pas toujours honnête.",
+            "Je suis quelqu'un qui fait les choses efficacement.",
+            "Je suis quelqu'un qui éprouve une peur intense.",
+            "Je suis quelqu'un qui suis sociable.",
+            "Je suis quelqu'un qui a des activités originales.",
+            "Je suis quelqu'un qui suis affectueux.",
+            "Je suis quelqu'un qui fais attention aux détails.",
+            "Je suis quelqu'un qui éprouve souvent de la tristesse.",
+            "Je suis quelqu'un qui suis généralement joyeux.",
+            "Je suis quelqu'un qui demande rarement la permission.",
+            "Je suis quelqu'un qui suis plutôt taciturne.",
+            "Je suis quelqu'un qui suis attiré par les styles et le design.",
+            "Je suis quelqu'un qui suis prêt à aider les autres.",
+            "Je suis quelqu'un qui fais attention à l'ordre dans ma vie.",
+            "Je suis quelqu'un qui éprouve de la nervosité facilement.",
+            "Je suis quelqu'un qui suis très social.",
+            "Je suis quelqu'un qui aime explorer des idées nouveaux.",
+            "Je suis quelqu'un qui peut être méfiant(e).",
+            "Je suis quelqu'un qui termine promptement ses tâches.",
+            "Je suis quelqu'un qui ressentais la détresse morale.",
+            "Je suis quelqu'un qui suis réservé et discret.",
+            "Je suis quelqu'un qui s'intéresse aux choses abstraits.",
+            "Je suis quelqu'un qui fait confiance aux autres.",
+            "Je suis quelqu'un qui travaille dur et avec rigueur.",
+            "Je suis quelqu'un qui peut être triste ou morose.",
+            "Je suis quelqu'un qui suis amusant et divertissant.",
+            "Je suis quelqu'un qui ne planifie pas à l'avance.",
+            "Je suis quelqu'un qui suis silencieux.",
+            "Je suis quelqu'un qui suis créatif.",
+            "Je suis quelqu'un qui peut être critique des autres.",
+            "Je suis quelqu'un qui qui suis fiable.",
+            "Je suis quelqu'un qui suis de bonne humeur stable.",
+            "Je suis quelqu'un qui suis actif et aime bouger.",
+            "Je suis quelqu'un qui adore explorer des lieux nouveaux.",
+            "Je suis quelqu'un qui suis bienveillant et compréhensif.",
+            "Je suis quelqu'un qui suis méticuleux dans mon travail.",
+            "Je suis quelqu'un qui suis souvent triste.",
+            "Je suis quelqu'un qui suis enthousiaste et energique.",
+            "Je suis quelqu'un qui suis impulsif et agis sur un coup de tête.",
+            "Je suis quelqu'un qui suis plus serieux que amusant.",
+            "Je suis quelqu'un qui apprécie beaucoup l'art et la poésie.",
+            "Je suis quelqu'un qui suis suspicieux envers les autres.",
+            "Je suis quelqu'un qui suis organisé(e) et appliqué(e).",
+            "Je suis quelqu'un qui suis pessimiste et de mauvaise humeur.",
+            "Je suis quelqu'un qui suis communicatif et expansif.",
+            "Je suis quelqu'un qui aime la variété et la nouveauté.",
+            "Je suis quelqu'un qui suis indulgent et compatissant.",
+            "Je suis quelqu'un qui respecte les conventions.",
+            "Je suis quelqu'un qui suis souvent de mauvaise humeur.",
+            "Je suis quelqu'un qui suis énergique.",
+            "Je suis quelqu'un qui suis créatif dans ma réflexion.",
+            "Je suis quelqu'un qui suis compétitif dans mes interactions.",
+            "Je suis quelqu'un qui suis consciencieux et prudent.",
+            "Je suis quelqu'un qui éprouve souvent des émotions négatives.",
+            "Je suis quelqu'un qui suis extraverti et sociable.",
+            "Je suis quelqu'un qui suis non-conformiste.",
+            "Je suis quelqu'un qui donne de mon temps pour les autres.",
+            "Je suis quelqu'un qui suis bien organisé(e).",
+            "Je suis quelqu'un qui traverse des périodes de dépression.",
+            "Je suis quelqu'un qui suis joyeux et optimiste.",
+            "Je suis quelqu'un qui ne tend pas à être prudent.",
+            "Je suis quelqu'un qui suis réservé socialement.",
+            "Je suis quelqu'un qui aime découvrir de nouvelles choses.",
+            "Je suis quelqu'un qui compte sur la générosité des autres.",
+            "Je suis quelqu'un qui suis ponctuel et fiable.",
+            "Je suis quelqu'un qui expérimente des niveaux élevés d'émotion négative.",
+            "Je suis quelqu'un qui suis enthousiaste et animé.",
+            "Je suis quelqu'un qui aime prendre des risques.",
+            "Je suis quelqu'un qui suis introvertie et fermée.",
+            "Je suis quelqu'un qui apprécie l'innovation et l'originalité.",
+            "Je suis quelqu'un qui essaye d'aider les autres quand je peux.",
+            "Je suis quelqu'un qui suis méticuleux et organisé(e).",
+            "Je suis quelqu'un qui suis facilement irritable.",
+            "Je suis quelqu'un qui apprécie les activités sociales.",
+            "Je suis quelqu'un qui aime faire de nouvelles expériences.",
+            "Je suis quelqu'un qui suis gentil et chaleureux.",
+            "Je suis quelqu'un qui fais preuve de discipline.",
+            "Je suis quelqu'un qui suis instable émotionnellement.",
+            "Je suis quelqu'un qui suis plein(e) d'énergie.",
+            "Je suis quelqu'un qui évite les responsabilités.",
+            "Je suis quelqu'un qui suis peu bavard.",
+            "Je suis quelqu'un qui suis intrigué par les idées abstraits.",
+            "Je suis quelqu'un qui se préoccupe des sentiments des autres.",
+            "Je suis quelqu'un qui suis consciencieux dans mon travail.",
+            "Je suis quelqu'un qui suis triste ou abattu.",
+            "Je suis quelqu'un qui suis enthousiaste et plein(e) d'entrain.",
+            "Je suis quelqu'un qui suis peu exigeant.",
+            "Je suis quelqu'un qui suis timide.",
+            "Je suis quelqu'un qui suis profond penseur.",
+            "Je suis quelqu'un qui est intéressé par d'autres personnes.",
+            "Je suis quelqu'un qui suis systématique et minutieux.",
+            "Je suis quelqu'un qui éprouve des émotions incontrôlables.",
+            "Je suis quelqu'un qui suis plein de vie.",
+            "Je suis quelqu'un qui suis prêt à chercher l'aventure.",
+            "Je suis quelqu'un qui suis discret.",
+            "Je suis quelqu'un qui suis curieux et aime apprendre.",
+            "Je suis quelqu'un qui suis intéressé par l'étude de la nature humaine.",
+            "Je suis quelqu'un qui suis responsable et fiable.",
+            "Je suis quelqu'un qui suis de mauvaise humeur.",
+            "Je suis quelqu'un qui suis sociable et extraverti.",
+            "Je suis quelqu'un qui suis ouvert aux concepts philosophiques.",
+            "Je suis quelqu'un qui suis miséricordieux et tendre.",
+            "Je suis quelqu'un qui suis adepte du travail acharné.",
+            "Je suis quelqu'un qui suis malheureux de ma vie.",
+            "Je suis quelqu'un qui suis dynamique et enthousiaste.",
+            "Je suis quelqu'un qui suis impétueux et inconsidéré.",
+            "Je suis quelqu'un qui suis introverti.",
+            "Je suis quelqu'un qui suis absorbé par de nouvelles idées.",
+            "Je suis quelqu'un qui aime contribuer au bien-être des autres.",
+            "Je suis quelqu'un qui suis prudent et attentif.",
+            "Je suis quelqu'un qui suis sujet à la dépression.",
+            "Je suis quelqu'un qui suis optimiste et enthousiaste.",
+            "Je suis quelqu'un qui suis réticent à faire des changements.",
+            "Je suis quelqu'un qui suis réservé et timide.",
+            "Je suis quelqu'un qui aime explorer des idées nouvelles.",
+            "Je suis quelqu'un qui suis sensible aux besoins des autres.",
+            "Je suis quelqu'un qui suis efficace et organisé.",
+            "Je suis quelqu'un qui suis facilement déçu.",
+            "Je suis quelqu'un qui suis joyeux et optimiste.",
+            "Je suis quelqu'un qui suis peu disposé à chercher des nouveautés.",
+            "Je suis quelqu'un qui suis naturellement réservé.",
+            "Je suis quelqu'un qui suis attiré par la beauté philosophique.",
+            "Je suis quelqu'un qui suis altruiste et généreux.",
+            "Je suis quelqu'un qui aime accomplir les tâches avec soin.",
+            "Je suis quelqu'un qui éprouve de la mélancolie.",
+            "Je suis quelqu'un qui suis extraverti et communiquer.",
+            "Je suis quelqu'un qui suis attiré par les idées novatrices.",
+            "Je suis quelqu'un qui suis aimable et courtois.",
+            "Je suis quelqu'un qui suis prudent et minutieux.",
+            "Avant de répondre à une question, j'y réfléchis à deux fois"
+        ];
+
+        const facette_pattern = ['N1', 'E1', 'O1', 'A1', 'C1', 'N2', 'E2', 'O2', 'A2', 'C2', 
+                                'N3', 'E3', 'O3', 'A3', 'C3', 'N4', 'E4', 'O4', 'A4', 'C4', 
+                                'N5', 'E5', 'O5', 'A5', 'C5', 'N6', 'E6', 'O6', 'A6', 'C6'];
+
+        const FACETTE_MAPPING = {};
+        for (let i = 0; i < 240; i++) {
+            FACETTE_MAPPING[i] = facette_pattern[i % 30];
+        }
+
+        const CLES_COTATION = {
+            0: "43210", 1: "01234", 2: "01234", 3: "43210", 4: "01234",
+            5: "01234", 6: "43210", 7: "43210", 8: "01234", 9: "43210",
+            10: "43210", 11: "01234", 12: "01234", 13: "43210", 14: "01234",
+            15: "01234", 16: "43210", 17: "43210", 18: "01234", 19: "43210",
+            20: "43210", 21: "01234", 22: "01234", 23: "43210", 24: "01234",
+            25: "01234", 26: "43210", 27: "43210", 28: "01234", 29: "43210",
+            30: "01234", 31: "43210", 32: "43210", 33: "01234", 34: "43210",
+            35: "43210", 36: "01234", 37: "01234", 38: "43210", 39: "01234",
+            40: "01234", 41: "43210", 42: "43210", 43: "01234", 44: "43210",
+            45: "43210", 46: "01234", 47: "01234", 48: "43210", 49: "01234",
+            50: "01234", 51: "43210", 52: "43210", 53: "01234", 54: "43210",
+            55: "43210", 56: "01234", 57: "01234", 58: "43210", 59: "01234",
+            60: "43210", 61: "01234", 62: "01234", 63: "43210", 64: "01234",
+            65: "01234", 66: "43210", 67: "43210", 68: "01234", 69: "43210",
+            70: "43210", 71: "01234", 72: "01234", 73: "43210", 74: "01234",
+            75: "01234", 76: "43210", 77: "43210", 78: "01234", 79: "43210",
+            80: "43210", 81: "01234", 82: "01234", 83: "43210", 84: "01234",
+            85: "01234", 86: "43210", 87: "43210", 88: "01234", 89: "43210",
+            90: "01234", 91: "43210", 92: "43210", 93: "01234", 94: "43210",
+            95: "43210", 96: "01234", 97: "01234", 98: "43210", 99: "01234",
+            100: "01234", 101: "43210", 102: "43210", 103: "01234", 104: "43210",
+            105: "43210", 106: "01234", 107: "01234", 108: "43210", 109: "01234",
+            110: "43210", 111: "01234", 112: "01234", 113: "43210", 114: "01234",
+            115: "01234", 116: "43210", 117: "43210", 118: "01234", 119: "43210",
+            120: "43210", 121: "01234", 122: "01234", 123: "43210", 124: "01234",
+            125: "01234", 126: "43210", 127: "43210", 128: "01234", 129: "43210",
+            130: "01234", 131: "01234", 132: "43210", 133: "43210", 134: "01234",
+            135: "43210", 136: "43210", 137: "01234", 138: "01234", 139: "43210",
+            140: "01234", 141: "01234", 142: "43210", 143: "43210", 144: "01234",
+            145: "43210", 146: "43210", 147: "01234", 148: "01234", 149: "43210",
+            150: "01234", 151: "43210", 152: "43210", 153: "01234", 154: "43210",
+            155: "43210", 156: "01234", 157: "01234", 158: "43210", 159: "01234",
+            160: "01234", 161: "43210", 162: "43210", 163: "01234", 164: "43210",
+            165: "43210", 166: "01234", 167: "01234", 168: "43210", 169: "01234",
+            170: "01234", 171: "43210", 172: "43210", 173: "01234", 174: "43210",
+            175: "43210", 176: "01234", 177: "01234", 178: "43210", 179: "01234",
+            180: "43210", 181: "01234", 182: "01234", 183: "43210", 184: "01234",
+            185: "01234", 186: "43210", 187: "43210", 188: "01234", 189: "43210",
+            190: "01234", 191: "01234", 192: "43210", 193: "43210", 194: "01234",
+            195: "43210", 196: "43210", 197: "01234", 198: "01234", 199: "43210",
+            200: "01234", 201: "01234", 202: "43210", 203: "43210", 204: "01234",
+            205: "43210", 206: "43210", 207: "01234", 208: "01234", 209: "43210",
+            210: "01234", 211: "43210", 212: "43210", 213: "01234", 214: "43210",
+            215: "43210", 216: "01234", 217: "01234", 218: "43210", 219: "01234",
+            220: "01234", 221: "43210", 222: "43210", 223: "01234", 224: "43210",
+            225: "43210", 226: "01234", 227: "01234", 228: "43210", 229: "01234",
+            230: "01234", 231: "43210", 232: "43210", 233: "01234", 234: "43210",
+            235: "43210", 236: "01234", 237: "01234", 238: "43210", 239: "01234"
+        };
+
+        const FACETTE_NAMES = {
+            'N1': 'Anxiété', 'N2': 'Colère', 'N3': 'Dépression', 'N4': 'Culpabilité', 'N5': 'Impulsivité', 'N6': 'Vulnérabilité',
+            'E1': 'Chaleur', 'E2': 'Assurance', 'E3': 'Sociabilité', 'E4': 'Activité', 'E5': 'Optimisme', 'E6': 'Amour-propre',
+            'O1': 'Imagination', 'O2': 'Intérêt artistique', 'O3': 'Émotionnalité', 'O4': 'Exploration', 'O5': 'Idées', 'O6': 'Valeurs',
+            'A1': 'Confiance', 'A2': 'Bonté', 'A3': 'Altruisme', 'A4': 'Conformité', 'A5': 'Modestie', 'A6': 'Attendrissement',
+            'C1': 'Compétence', 'C2': 'Ordre', 'C3': 'Sens du devoir', 'C4': 'Effort', 'C5': 'Discipline', 'C6': 'Délibération'
+        };
+
+        const DIMENSIONS = {
+            'N': 'Névrosisme',
+            'E': 'Extraversion',
+            'O': 'Ouverture',
+            'A': 'Amabilité',
+            'C': 'Conscienciosité'
+        };
+
+        const RESPONSE_LABELS = ['FD', 'D', 'N', 'A', 'FA'];
+        const RESPONSE_LONG = ['Fortement en désaccord', 'Désaccord', 'Neutre', 'Accord', 'Fortement d\'accord'];
+
+        function decodeClé(clé, réponse) {
+            // clé = "43210" ou "01234"
+            // réponse = 0-4 (FD, D, N, A, FA)
+            const chars = clé.split('');
+            return parseInt(chars[réponse]);
+        }
+
+        function convertToPercentile(score, isFacette = true) {
+            const minScore = isFacette ? 8 : 48;
+            const maxScore = isFacette ? 40 : 240;
+            const percentile = ((score - minScore) / (maxScore - minScore)) * 60 + 20;
+            return Math.round(Math.max(20, Math.min(80, percentile)));
+        }
+
+        function getInterpretation(percentile) {
+            if (percentile >= 20 && percentile <= 34) return 'Très faible';
+            if (percentile >= 35 && percentile <= 44) return 'Faible';
+            if (percentile >= 45 && percentile <= 55) return 'Moyen';
+            if (percentile >= 56 && percentile <= 65) return 'Élevé';
+            if (percentile >= 66 && percentile <= 80) return 'Très élevé';
+            return 'N/A';
+        }
+
+        function getPercentileClass(percentile) {
+            if (percentile >= 20 && percentile <= 34) return 'percentile-20-34';
+            if (percentile >= 35 && percentile <= 44) return 'percentile-35-44';
+            if (percentile >= 45 && percentile <= 55) return 'percentile-45-55';
+            if (percentile >= 56 && percentile <= 65) return 'percentile-56-65';
+            if (percentile >= 66 && percentile <= 80) return 'percentile-66-80';
+            return '';
+        }
+
+        function App() {
+            const [started, setStarted] = React.useState(false);
+            const [currentQuestion, setCurrentQuestion] = React.useState(0);
+            const [answers, setAnswers] = React.useState({});
+            const [showResults, setShowResults] = React.useState(false);
+            const [showExportModal, setShowExportModal] = React.useState(false);
+
+            const handleAnswer = (responseIndex) => {
+                const clé = CLES_COTATION[currentQuestion];
+                const scoreCotation = decodeClé(clé, responseIndex);
+                const newAnswers = { ...answers, [currentQuestion]: scoreCotation };
+                setAnswers(newAnswers);
+                if (currentQuestion < QUESTIONS.length - 1) {
+                    setCurrentQuestion(currentQuestion + 1);
+                }
+            };
+
+            const nextQuestion = () => {
+                if (currentQuestion < QUESTIONS.length - 1) {
+                    setCurrentQuestion(currentQuestion + 1);
+                }
+            };
+
+            const prevQuestion = () => {
+                if (currentQuestion > 0) {
+                    setCurrentQuestion(currentQuestion - 1);
+                }
+            };
+
+            const calculateScores = () => {
+                const facetteScores = {};
+                for (let i = 0; i < 240; i++) {
+                    if (answers[i] !== undefined) {
+                        const facette = FACETTE_MAPPING[i];
+                        facetteScores[facette] = (facetteScores[facette] || 0) + answers[i];
+                    }
+                }
+                return facetteScores;
+            };
+
+            const calculateDimensions = (facetteScores) => {
+                const dimScores = { N: 0, E: 0, O: 0, A: 0, C: 0 };
+                Object.entries(facetteScores).forEach(([facette, score]) => {
+                    const dim = facette[0];
+                    dimScores[dim] += score;
+                });
+                return dimScores;
+            };
+
+            const submitAnswers = () => {
+                setShowResults(true);
+            };
+
+            const downloadJSON = () => {
+                const facetteScores = calculateScores();
+                const dimScores = calculateDimensions(facetteScores);
+
+                const exportData = {
+                    timestamp: new Date().toISOString(),
+                    testType: 'NEO-PI-3',
+                    totalQuestions: Object.keys(answers).length,
+                    rawScores: answers,
+                    scores: {
+                        facettes: facetteScores,
+                        dimensions: dimScores,
+                        percentiles: {
+                            facettes: Object.fromEntries(
+                                Object.entries(facetteScores).map(([f, s]) => [f, convertToPercentile(s, true)])
+                            ),
+                            dimensions: Object.fromEntries(
+                                Object.entries(dimScores).map(([d, s]) => [d, convertToPercentile(s, false)])
+                            )
+                        }
+                    }
+                };
+
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `NEO-PI-3_${Date.now()}.json`;
+                a.click();
+                setShowExportModal(false);
+            };
+
+            const sendToWebhook = async () => {
+                const facetteScores = calculateScores();
+                const dimScores = calculateDimensions(facetteScores);
+
+                const payload = {
+                    timestamp: new Date().toISOString(),
+                    testType: 'NEO-PI-3',
+                    totalQuestions: Object.keys(answers).length,
+                    scores: {
+                        facettes: facetteScores,
+                        dimensions: dimScores,
+                        percentiles: {
+                            facettes: Object.fromEntries(
+                                Object.entries(facetteScores).map(([f, s]) => [f, convertToPercentile(s, true)])
+                            ),
+                            dimensions: Object.fromEntries(
+                                Object.entries(dimScores).map(([d, s]) => [d, convertToPercentile(s, false)])
+                            )
+                        }
+                    }
+                };
+
+                try {
+                    await fetch(WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    alert('✅ Résultats envoyés au serveur !');
+                    setShowExportModal(false);
+                } catch (err) {
+                    alert('⚠️ Les données ont probablement été envoyées');
+                    setShowExportModal(false);
+                }
+            };
+
+            const progress = (Object.keys(answers).length / QUESTIONS.length) * 100;
+
+            if (!started) {
+                return (
+                    <div className="container">
+                        <div className="header">
+                            <h1>NEO-PI-3</h1>
+                            <p>Test Complet de Personnalité - 240 Questions</p>
+                        </div>
+                        <div className="home-screen">
+                            <h2>Bienvenue au test NEO-PI-3</h2>
+                            <p>Répondez honnêtement à 240 affirmations pour obtenir une évaluation détaillée de votre personnalité selon le modèle OCEAN (Big Five).</p>
+                            <div className="info-grid">
+                                <div className="info-card">
+                                    <div className="info-icon">📋</div>
+                                    <div className="info-title">240 Questions</div>
+                                    <div className="info-text">Évaluation complète</div>
+                                </div>
+                                <div className="info-card">
+                                    <div className="info-icon">📊</div>
+                                    <div className="info-title">5 Dimensions</div>
+                                    <div className="info-text">Profil OCEAN</div>
+                                </div>
+                                <div className="info-card">
+                                    <div className="info-icon">🔬</div>
+                                    <div className="info-title">30 Facettes</div>
+                                    <div className="info-text">Analyse détaillée</div>
+                                </div>
+                                <div className="info-card">
+                                    <div className="info-icon">⏱️</div>
+                                    <div className="info-title">20-30 min</div>
+                                    <div className="info-text">Durée moyenne</div>
+                                </div>
+                            </div>
+                            <button className="btn btn-primary btn-start" onClick={() => setStarted(true)}>
+                                Commencer le Test
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (showResults) {
+                const facetteScores = calculateScores();
+                const dimScores = calculateDimensions(facetteScores);
+
+                return (
+                    <div className="container">
+                        <div className="header">
+                            <h1>NEO-PI-3 - Résultats</h1>
+                            <p>Feuille de Profil - Auto-Évaluation Mixte</p>
+                        </div>
+
+                        <div className="results-container">
+                            <div className="results-title">Analyse de Personnalité</div>
+
+                            {['N', 'E', 'O', 'A', 'C'].map(dim => (
+                                <div key={dim} className="results-section">
+                                    <div className="dimension-header">{dim} - {DIMENSIONS[dim]}</div>
+                                    
+                                    {[1, 2, 3, 4, 5, 6].map(num => {
+                                        const facette = `${dim}${num}`;
+                                        const scorebrut = facetteScores[facette] || 0;
+                                        const percentile = convertToPercentile(scorebrut, true);
+                                        const interpretation = getInterpretation(percentile);
+                                        const percentileClass = getPercentileClass(percentile);
+
+                                        return (
+                                            <div key={facette} className="facette-row">
+                                                <div className="facette-name">{facette}: {FACETTE_NAMES[facette]}</div>
+                                                <div className="score-brut">{scorebrut}/32</div>
+                                                <div className="percentile-bar">
+                                                    <div className="percentile-fill" style={{width: `${((percentile - 20) / 60) * 100}%`}}>
+                                                        {percentile}
+                                                    </div>
+                                                </div>
+                                                <div></div>
+                                                <div className={`percentile-badge ${percentileClass}`}>
+                                                    {interpretation}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+
+                                    <div className="dimension-row">
+                                        <div className="dimension-name">{dim}</div>
+                                        <div className="score-brut">{dimScores[dim]}/192</div>
+                                        <div className="percentile-bar">
+                                            <div className="percentile-fill" style={{width: `${((convertToPercentile(dimScores[dim], false) - 20) / 60) * 100}%`}}>
+                                                {convertToPercentile(dimScores[dim], false)}
+                                            </div>
+                                        </div>
+                                        <div></div>
+                                        <div className={`percentile-badge ${getPercentileClass(convertToPercentile(dimScores[dim], false))}`}>
+                                            {getInterpretation(convertToPercentile(dimScores[dim], false))}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {showExportModal && (
+                            <div className="export-modal">
+                                <div className="export-modal-content">
+                                    <div className="export-modal-title">Exporter les résultats</div>
+                                    <div className="export-options">
+                                        <div className="export-option" onClick={downloadJSON}>
+                                            📄 Télécharger JSON
+                                        </div>
+                                        <div className="export-option" onClick={sendToWebhook}>
+                                            📤 Envoyer au serveur
+                                        </div>
+                                    </div>
+                                    <button className="btn btn-secondary" onClick={() => setShowExportModal(false)}>Annuler</button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="controls print-hidden">
+                            <button className="btn btn-secondary" onClick={() => {
+                                setStarted(false);
+                                setCurrentQuestion(0);
+                                setAnswers({});
+                                setShowResults(false);
+                            }}>Recommencer</button>
+                            <button className="btn btn-success" onClick={() => setShowExportModal(true)}>📥 Exporter</button>
+                            <button className="btn btn-primary" onClick={() => window.print()}>🖨️ Imprimer</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>NEO-PI-3</h1>
+                        <p>Question {currentQuestion + 1} / {QUESTIONS.length}</p>
+                    </div>
+
+                    <div className="progress-section">
+                        <div className="progress-bar">
+                            <div className="progress-fill" style={{ width: `${progress}%` }}></div>
+                        </div>
+                        <div className="progress-text">{Math.round(progress)}% - {Object.keys(answers).length} / {QUESTIONS.length} questions</div>
+                    </div>
+
+                    <div className="content">
+                        <div className="question-card">
+                            <div className="question-number">Question {currentQuestion + 1}</div>
+                            <div className="question-text">{QUESTIONS[currentQuestion]}</div>
+                            <div className="response-options">
+                                {[0, 1, 2, 3, 4].map(idx => {
+                                    const clé = CLES_COTATION[currentQuestion];
+                                    const score = decodeClé(clé, idx);
+                                    return (
+                                        <button
+                                            key={idx}
+                                            className={`response-btn ${idx === 0 ? 'fd' : idx === 1 ? 'd' : idx === 2 ? 'n' : idx === 3 ? 'a' : 'fa'}`}
+                                            onClick={() => handleAnswer(idx)}
+                                        >
+                                            <div>{RESPONSE_LABELS[idx]}</div>
+                                            <div style={{fontSize: '0.75em', marginTop: '4px'}}>{RESPONSE_LONG[idx]}</div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="controls">
+                        <button className="btn btn-secondary" onClick={prevQuestion} disabled={currentQuestion === 0}>
+                            ← Précédent
+                        </button>
+                        {currentQuestion === QUESTIONS.length - 1 ? (
+                            <button 
+                                className="btn btn-primary" 
+                                onClick={submitAnswers}
+                                disabled={Object.keys(answers).length !== QUESTIONS.length}
+                            >
+                                Voir Résultats
+                            </button>
+                        ) : (
+                            <button className="btn btn-primary" onClick={nextQuestion}>
+                                Suivant →
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
