@@ -270,7 +270,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const WEBHOOK_URL = 'https://webhook.site/cfd7bb7d-d587-49c3-b5c7-68048b819d42';
+        const WEBHOOK_URL = 'https://formspree.io/f/mkozrzop';
 
         const QUESTIONS = [
             "Je ne suis pas du genre à me faire du souci.",
@@ -789,15 +789,20 @@
                 };
 
                 try {
-                    await fetch(WEBHOOK_URL, {
+                    const response = await fetch(WEBHOOK_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
-                    alert('✅ Résultats envoyés au serveur !');
+                    
+                    if (response.ok) {
+                        alert('✅ Résultats envoyés avec succès !\n\nVos données ont été sauvegardées de manière sécurisée.');
+                    } else {
+                        alert('⚠️ Erreur lors de l\'envoi. Veuillez réessayer.');
+                    }
                     setShowExportModal(false);
                 } catch (err) {
-                    alert('⚠️ Les données ont probablement été envoyées');
+                    alert('⚠️ Erreur de connexion. Veuillez vérifier votre connexion Internet.');
                     setShowExportModal(false);
                 }
             };
@@ -940,10 +945,10 @@
                                     <div className="export-modal-title">Exporter les résultats</div>
                                     <div className="export-options">
                                         <div className="export-option" onClick={downloadJSON}>
-                                            📄 Télécharger JSON
+                                            📄 Télécharger mes résultats (JSON)
                                         </div>
                                         <div className="export-option" onClick={sendToWebhook}>
-                                            📤 Envoyer au serveur
+                                            ✉️ Envoyer mes résultats par email (sécurisé)
                                         </div>
                                     </div>
                                     <button className="btn btn-secondary" onClick={() => setShowExportModal(false)}>Annuler</button>
