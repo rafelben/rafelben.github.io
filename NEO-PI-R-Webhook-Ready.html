@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEO-PI-R - Analyse Professionnelle de Personnalité</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .progress-section {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .content {
+            padding: 40px 30px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .question-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .question-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: #212529;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .response-options {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .response-btn {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .response-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .response-btn.fd { color: #dc3545; }
+        .response-btn.d { color: #fd7e14; }
+        .response-btn.n { color: #ffc107; }
+        .response-btn.a { color: #28a745; }
+        .response-btn.fa { color: #667eea; }
+
+        .response-btn.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            border-color: transparent;
+        }
+
+        .response-btn .response-short {
+            display: block;
+            font-size: 1em;
+            line-height: 1.1;
+        }
+
+        .response-btn .response-long {
+            display: block;
+            margin-top: 4px;
+            font-size: 0.75em;
+            line-height: 1.1;
+            font-weight: 400;
+            opacity: 0.85;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .home-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .home-screen h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #212529;
+        }
+
+        .home-screen p {
+            font-size: 1.1em;
+            color: #495057;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            padding: 30px 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+
+        .info-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        .info-title {
+            font-weight: 600;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #212529;
+        }
+
+        .info-text {
+            color: #6c757d;
+            font-size: 0.95em;
+        }
+
+        .btn-start {
+            padding: 15px 50px;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+
+        .results-container {
+            padding: 30px;
+        }
+
+        .results-title {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            color: #212529;
+        }
+
+        .results-subtitle {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .dimension-section {
+            margin-bottom: 40px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 25px;
+            background: #f8f9fa;
+        }
+
+        .dimension-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .dimension-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .summary-header {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #212529;
+        }
+
+        .summary-content {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .summary-item {
+            flex: 1;
+        }
+
+        .summary-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .summary-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .score-bar {
+            background: #e9ecef;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .interpretation-box {
+            background: white;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            margin-top: 15px;
+            font-style: italic;
+            color: #495057;
+            line-height: 1.6;
+        }
+
+        .dimension-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .facette-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .facette-name {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #212529;
+            font-size: 0.9em;
+        }
+
+        .score-display {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .score-label {
+            color: #6c757d;
+            font-size: 0.85em;
+        }
+
+        .score-value {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .print-hidden {
+            display: block;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .print-hidden {
+                display: none;
+            }
+            .controls {
+                display: none;
+            }
+        }
+
+        .export-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .export-modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .export-modal-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #212529;
+        }
+
+        .export-modal-text {
+            color: #495057;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .export-option {
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .export-option:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .export-modal-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .recovery-banner {
+            background: #e7f3ff;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .recovery-banner p {
+            margin-bottom: 10px;
+        }
+
+        .recovery-banner button {
+            padding: 8px 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // ========================================================
+        // ⚠️ CONFIGURATION WEBHOOK.SITE - À MODIFIER
+        // ========================================================
+        // Remplacer 'VOTRE_WEBHOOK_ID' par l'URL complète de webhook.site
+        // Exemple : 'https://webhook.site/12abc34d-5e6f-7g8h-9i0j-1k2l3m4n5o6p'
+        const WEBHOOK_URL = 'https://webhook.site/cfd7bb7d-d587-49c3-b5c7-68048b819d42';
+        // ========================================================
+
+        const DIMENSIONS_INFO = {
+            'N': {
+                name: '🔴 Névrosisme',
+                desc: 'Tendance à expérimenter des émotions négatives. Un score élevé indique une vulnérabilité émotionnelle.'
+            },
+            'E': {
+                name: '🔵 Extraversion',
+                desc: 'Tendance à la sociabilité, à l\'assertivité et à la recherche de stimulation. Un score élevé indique une nature extravertie.'
+            },
+            'O': {
+                name: '🟢 Ouverture',
+                desc: 'Curiosité intellectuelle, appréciation de l\'art et des idées nouvelles. Un score élevé indique une grande ouverture d\'esprit.'
+            },
+            'A': {
+                name: '🟠 Amabilité',
+                desc: 'Tendance à la coopération, l\'altruisme et la compassion. Un score élevé indique une grande bienveillance.'
+            },
+            'C': {
+                name: '🟡 Conscienciosité',
+                desc: 'Tendance à la rigueur, l\'organisation et la discipline. Un score élevé indique une grande fiabilité.'
+            }
+        };
+
+        const FACETTES = {
+            'N1': 'Anxiété', 'N2': 'Colère', 'N3': 'Dépression', 'N4': 'Culpabilité', 'N5': 'Impulsivité', 'N6': 'Vulnérabilité',
+            'E1': 'Chaleur', 'E2': 'Assurance', 'E3': 'Sociabilité', 'E4': 'Activité', 'E5': 'Optimisme', 'E6': 'Amour-propre',
+            'O1': 'Imagination', 'O2': 'Intérêt artistique', 'O3': 'Émotionnalité', 'O4': 'Exploration', 'O5': 'Idées', 'O6': 'Valeurs',
+            'A1': 'Confiance', 'A2': 'Bonté', 'A3': 'Altruisme', 'A4': 'Conformité', 'A5': 'Modestie', 'A6': 'Attendrissement',
+            'C1': 'Compétence', 'C2': 'Ordre', 'C3': 'Sens du devoir', 'C4': 'Effort', 'C5': 'Discipline', 'C6': 'Délibération'
+        };
+
+        const RESPONSE_OPTIONS = {
+            'fd': { short: 'FD', long: 'Fortement Désaccord' },
+            'd': { short: 'D', long: 'Désaccord' },
+            'n': { short: 'N', long: 'Neutre' },
+            'a': { short: 'A', long: 'Accord' },
+            'fa': { short: 'FA', long: 'Fortement Accord' }
+        };
+
+        const QUESTIONS = [
+            "Je suis déprimé, abattu.",
+            "Je suis plutôt une personne prudente et soigneuse.",
+            "Je m'intéresse peu à la vie abstraite et théorique.",
+            "Je suis généralement aimable avec tout le monde.",
+            "Je suis de nature anxieuse.",
+            "Je suis une personne très active et dynamique.",
+            "J'ai peu d'intérêt pour les théâtres, expositions d'art et concert.",
+            "Je peux être assez froid envers les autres.",
+            "Je manque de discipline et d'organisation.",
+            "Je me sentais souvent envieux des autres.",
+            "J'aime être le centre de l'attention.",
+            "J'aime explorer des idées nouvelles et plutôt complexes."
+        ];
+
+        const FACETTE_MAPPING = {
+            0: 'N3', 1: 'C1', 2: 'O5', 3: 'A1', 4: 'N1', 5: 'E4',
+            6: 'O2', 7: 'A3', 8: 'C2', 9: 'N4', 10: 'E1', 11: 'O1'
+        };
+
+        const SCORING = {
+            'fd': 1, 'd': 2, 'n': 3, 'a': 4, 'fa': 5
+        };
+
+        const REVERSE_SCORED = [2, 7, 8];
+
+        function App() {
+            const [started, setStarted] = React.useState(false);
+            const [currentQuestion, setCurrentQuestion] = React.useState(0);
+            const [answers, setAnswers] = React.useState({});
+            const [showResults, setShowResults] = React.useState(false);
+            const [showExportModal, setShowExportModal] = React.useState(false);
+            const [savedSession, setSavedSession] = React.useState(null);
+
+            React.useEffect(() => {
+                const saved = localStorage.getItem('neopitest_session');
+                if (saved) {
+                    const session = JSON.parse(saved);
+                    setSavedSession(session);
+                }
+            }, []);
+
+            const saveToLocalStorage = (newAnswers) => {
+                const session = {
+                    timestamp: new Date().toISOString(),
+                    answers: newAnswers,
+                    currentQuestion: currentQuestion
+                };
+                localStorage.setItem('neopitest_session', JSON.stringify(session));
+            };
+
+            const clearLocalStorage = () => {
+                localStorage.removeItem('neopitest_session');
+                setSavedSession(null);
+            };
+
+            const handleAnswer = (option) => {
+                const newAnswers = { ...answers, [currentQuestion]: option };
+                setAnswers(newAnswers);
+                saveToLocalStorage(newAnswers);
+                setTimeout(() => nextQuestion(), 200);
+            };
+
+            const nextQuestion = () => {
+                if (currentQuestion < QUESTIONS.length - 1) {
+                    setCurrentQuestion(currentQuestion + 1);
+                }
+            };
+
+            const prevQuestion = () => {
+                if (currentQuestion > 0) {
+                    setCurrentQuestion(currentQuestion - 1);
+                }
+            };
+
+            const submitAnswers = () => {
+                setShowResults(true);
+            };
+
+            const calculateFacetteScores = () => {
+                const facetteScores = {};
+                Object.entries(FACETTE_MAPPING).forEach(([qIndex, facette]) => {
+                    const qIndexNum = parseInt(qIndex);
+                    const response = answers[qIndexNum];
+                    let score = SCORING[response] || 0;
+
+                    if (REVERSE_SCORED.includes(qIndexNum)) {
+                        score = 6 - score;
+                    }
+
+                    facetteScores[facette] = (facetteScores[facette] || 0) + score;
+                });
+
+                return facetteScores;
+            };
+
+            const calculateDimensionScores = (facetteScores) => {
+                const dimScores = { 'N': 0, 'E': 0, 'O': 0, 'A': 0, 'C': 0 };
+
+                Object.entries(facetteScores).forEach(([facette, score]) => {
+                    const dim = facette[0];
+                    dimScores[dim] += score;
+                });
+
+                return dimScores;
+            };
+
+            const getInterpretation = (score, maxScore) => {
+                const percentage = (score / maxScore) * 100;
+                if (percentage >= 75) return "Très élevé";
+                if (percentage >= 60) return "Élevé";
+                if (percentage >= 40) return "Moyen";
+                if (percentage >= 25) return "Bas";
+                return "Très bas";
+            };
+
+            const downloadJSON = () => {
+                const facetteScores = calculateFacetteScores();
+                const dimScores = calculateDimensionScores(facetteScores);
+
+                const exportData = {
+                    metadata: {
+                        test: 'NEO-PI-R (version démo)',
+                        timestamp: new Date().toISOString(),
+                        version: '1.0'
+                    },
+                    rawAnswers: answers,
+                    scores: {
+                        dimensions: dimScores,
+                        facettes: facetteScores
+                    }
+                };
+
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `NEO-PI-R_${Date.now()}.json`;
+                a.click();
+                setShowExportModal(false);
+            };
+
+            const downloadCSV = () => {
+                const facetteScores = calculateFacetteScores();
+                const dimScores = calculateDimensionScores(facetteScores);
+
+                let csv = 'Dimension,Score,Interprétation\n';
+                Object.entries(dimScores).forEach(([dim, score]) => {
+                    const interpretation = getInterpretation(score, 32);
+                    csv += `${DIMENSIONS_INFO[dim].name.replace(/🔴|🔵|🟢|🟠|🟡/g, '').trim()},${score},${interpretation}\n`;
+                });
+
+                csv += '\n\nFacette,Score,Interprétation\n';
+                Object.entries(facetteScores).forEach(([facette, score]) => {
+                    const interpretation = getInterpretation(score, 32);
+                    csv += `${facette}: ${FACETTES[facette]},${score},${interpretation}\n`;
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `NEO-PI-R_${Date.now()}.csv`;
+                a.click();
+                setShowExportModal(false);
+            };
+
+            const sendToWebhook = () => {
+                // Vérification que l'URL Webhook est configurée
+                if (WEBHOOK_URL === 'VOTRE_WEBHOOK_ID') {
+                    alert('❌ Erreur : URL Webhook non configurée. Contactez l\'administrateur.');
+                    return;
+                }
+
+                const facetteScores = calculateFacetteScores();
+                const dimScores = calculateDimensionScores(facetteScores);
+
+                const payload = {
+                    timestamp: new Date().toISOString(),
+                    testType: 'NEO-PI-R',
+                    version: '1.0',
+                    rawAnswers: answers,
+                    scores: {
+                        dimensions: dimScores,
+                        facettes: facetteScores
+                    }
+                };
+
+                fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(() => {
+                    alert('✅ Résultats envoyés au serveur avec succès !');
+                    setShowExportModal(false);
+                })
+                .catch(err => {
+                    alert('⚠️ Les données ont probablement été envoyées (confirmation réseau bloquée). Vérifiez sur webhook.site.');
+                    setShowExportModal(false);
+                });
+            };
+
+            const progress = ((Object.keys(answers).length) / QUESTIONS.length) * 100;
+
+            if (!started) {
+                return (
+                    <div className="container">
+                        <div className="header">
+                            <h1>🎯 NEO-PI-R</h1>
+                            <p>Analyse Professionnelle de Personnalité</p>
+                        </div>
+                        <div className="home-screen">
+                            {savedSession && (
+                                <div className="recovery-banner">
+                                    <p><strong>Session précédente détectée</strong></p>
+                                    <p>Progression : {Object.keys(savedSession.answers).length} / {QUESTIONS.length} questions</p>
+                                    <button onClick={() => {
+                                        setAnswers(savedSession.answers);
+                                        setCurrentQuestion(savedSession.currentQuestion);
+                                        setStarted(true);
+                                    }}>Reprendre</button>
+                                    <button onClick={clearLocalStorage}>Recommencer</button>
+                                </div>
+                            )}
+                            <h2>Bienvenue au test NEO-PI-R</h2>
+                            <p>Répondez honnêtement aux affirmations. Ce questionnaire évalue votre personnalité selon cinq dimensions majeures.</p>
+                            <div className="info-grid">
+                                <div className="info-card">
+                                    <div className="info-icon">📋</div>
+                                    <div className="info-title">12 Items</div>
+                                    <div className="info-text">Version courte (démo)</div>
+                                </div>
+                                <div className="info-card">
+                                    <div className="info-icon">📊</div>
+                                    <div className="info-title">5 Dimensions</div>
+                                    <div className="info-text">Profil personnalité</div>
+                                </div>
+                                <div className="info-card">
+                                    <div className="info-icon">💾</div>
+                                    <div className="info-title">Export Données</div>
+                                    <div className="info-text">JSON / CSV / Webhook</div>
+                                </div>
+                                <div className="info-card">
+                                    <div className="info-icon">⏱️</div>
+                                    <div className="info-title">2-3 min</div>
+                                    <div className="info-text">Durée rapide</div>
+                                </div>
+                            </div>
+                            <button className="btn btn-primary btn-start" onClick={() => setStarted(true)}>
+                                Commencer le Test
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (showResults) {
+                const facetteScores = calculateFacetteScores();
+                const dimScores = calculateDimensionScores(facetteScores);
+
+                return (
+                    <div className="container">
+                        <div className="header">
+                            <h1>📊 Résultats NEO-PI-R</h1>
+                            <p>Profil de Personnalité</p>
+                        </div>
+
+                        <div className="results-container" id="printContent">
+                            <div className="results-title">Analyse de Personnalité NEO-PI-R</div>
+                            <div className="results-subtitle">Test complété le {new Date().toLocaleDateString('fr-FR')}</div>
+
+                            {['N', 'E', 'O', 'A', 'C'].map(dimKey => (
+                                <div key={dimKey} className="dimension-section">
+                                    <div className="dimension-title">{DIMENSIONS_INFO[dimKey].name}</div>
+                                    <div className="dimension-summary">
+                                        <div className="summary-header">Score Dimension</div>
+                                        <div className="summary-content">
+                                            <div className="summary-item">
+                                                <div className="summary-label">Score Brut</div>
+                                                <div className="summary-value">{dimScores[dimKey]} / 32</div>
+                                            </div>
+                                            <div className="summary-item">
+                                                <div className="summary-label">Interprétation</div>
+                                                <div className="summary-value">{getInterpretation(dimScores[dimKey], 32)}</div>
+                                            </div>
+                                        </div>
+                                        <div className="score-bar" style={{ marginTop: '15px' }}>
+                                            <div className="score-fill" style={{ width: `${(dimScores[dimKey] / 32) * 100}%` }}></div>
+                                        </div>
+                                        <div className="interpretation-box">
+                                            {DIMENSIONS_INFO[dimKey].desc}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {showExportModal && (
+                            <div className="export-modal">
+                                <div className="export-modal-content">
+                                    <div className="export-modal-title">Exporter vos résultats</div>
+                                    <div className="export-modal-text">Choisissez le format d'export :</div>
+                                    <div className="export-options">
+                                        <div className="export-option" onClick={downloadJSON}>
+                                            📄 JSON (données brutes - téléchargement)
+                                        </div>
+                                        <div className="export-option" onClick={downloadCSV}>
+                                            📊 CSV (compatible Excel - téléchargement)
+                                        </div>
+                                        <div className="export-option" onClick={sendToWebhook}>
+                                            📤 Envoyer au serveur (webhook.site)
+                                        </div>
+                                    </div>
+                                    <div className="export-modal-buttons">
+                                        <button className="btn btn-secondary" onClick={() => setShowExportModal(false)}>Annuler</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="controls print-hidden">
+                            <button className="btn btn-secondary" onClick={() => {
+                                setStarted(false);
+                                setCurrentQuestion(0);
+                                setAnswers({});
+                                setShowResults(false);
+                                clearLocalStorage();
+                            }}>Recommencer</button>
+                            <button className="btn btn-success" onClick={() => setShowExportModal(true)}>📥 Exporter Résultats</button>
+                            <button className="btn btn-primary" onClick={() => window.print()}>🖨️ Imprimer / PDF</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>🎯 NEO-PI-R</h1>
+                        <p>Questionnaire de Personnalité</p>
+                    </div>
+
+                    <div className="progress-section">
+                        <div className="progress-bar">
+                            <div className="progress-fill" style={{ width: `${progress}%` }}></div>
+                        </div>
+                        <div className="progress-text">Question {currentQuestion + 1} sur {QUESTIONS.length} ({Math.round(progress)}%)</div>
+                    </div>
+
+                    <div className="content">
+                        <div className="question-card">
+                            <div className="question-number">Question {currentQuestion + 1}/{QUESTIONS.length}</div>
+                            <div className="question-text">{QUESTIONS[currentQuestion]}</div>
+                            <div className="response-options">
+                                {['fd', 'd', 'n', 'a', 'fa'].map(option => (
+                                    <button
+                                        key={option}
+                                        className={`response-btn ${option} ${answers[currentQuestion] === option ? 'selected' : ''}`}
+                                        onClick={() => handleAnswer(option)}
+                                    >
+                                        <div className="response-short">{RESPONSE_OPTIONS[option].short}</div>
+                                        <div className="response-long">{RESPONSE_OPTIONS[option].long}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="controls">
+                        <button className="btn btn-secondary" onClick={prevQuestion} disabled={currentQuestion === 0}>
+                            ← Précédent
+                        </button>
+                        {currentQuestion === QUESTIONS.length - 1 ? (
+                            <button 
+                                className="btn btn-primary" 
+                                onClick={submitAnswers}
+                                disabled={Object.keys(answers).length !== QUESTIONS.length}
+                            >
+                                Voir Résultats
+                            </button>
+                        ) : (
+                            <button className="btn btn-primary" onClick={nextQuestion}>
+                                Suivant →
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
