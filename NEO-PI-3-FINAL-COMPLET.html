@@ -84,6 +84,8 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white !important;
             border-color: transparent;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transform: scale(1.05);
         }
         .response-btn.fd { color: #dc3545; }
         .response-btn.d { color: #fd7e14; }
@@ -628,17 +630,39 @@
             const [started, setStarted] = React.useState(false);
             const [currentQuestion, setCurrentQuestion] = React.useState(0);
             const [answers, setAnswers] = React.useState({});
+            const [selectedResponseIndex, setSelectedResponseIndex] = React.useState(null);
             const [showResults, setShowResults] = React.useState(false);
             const [showExportModal, setShowExportModal] = React.useState(false);
 
+            // Charger la réponse précédente si elle existe (une seule fois au changement de question)
+            React.useEffect(() => {
+                if (answers[currentQuestion] !== undefined) {
+                    const clé = CLES_COTATION[currentQuestion];
+                    for (let i = 0; i < 5; i++) {
+                        if (parseInt(clé[i]) === answers[currentQuestion]) {
+                            setSelectedResponseIndex(i);
+                            return; // Important : sortir après avoir trouvé
+                        }
+                    }
+                } else {
+                    setSelectedResponseIndex(null);
+                }
+            }, [currentQuestion, CLES_COTATION]); // Dépendance : seulement currentQuestion change
+
             const handleAnswer = (responseIndex) => {
+                // Vérifier si déjà répondu à cette question
+                if (answers[currentQuestion] !== undefined) {
+                    return; // Ne pas répondre deux fois
+                }
+                
                 const clé = CLES_COTATION[currentQuestion];
                 const scoreCotation = decodeClé(clé, responseIndex);
-                const newAnswers = { ...answers, [currentQuestion]: scoreCotation };
-                setAnswers(newAnswers);
-                if (currentQuestion < QUESTIONS.length - 1) {
-                    setCurrentQuestion(currentQuestion + 1);
-                }
+                
+                setSelectedResponseIndex(responseIndex);
+                setAnswers(prev => ({
+                    ...prev,
+                    [currentQuestion]: scoreCotation
+                }));
             };
 
             const nextQuestion = () => {
@@ -902,7 +926,7 @@
                                     return (
                                         <button
                                             key={idx}
-                                            className={`response-btn ${idx === 0 ? 'fd' : idx === 1 ? 'd' : idx === 2 ? 'n' : idx === 3 ? 'a' : 'fa'}`}
+                                            className={`response-btn ${idx === 0 ? 'fd' : idx === 1 ? 'd' : idx === 2 ? 'n' : idx === 3 ? 'a' : 'fa'} ${selectedResponseIndex === idx ? 'selected' : ''}`}
                                             onClick={() => handleAnswer(idx)}
                                         >
                                             <div>{RESPONSE_LABELS[idx]}</div>
